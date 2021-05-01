@@ -1,36 +1,10 @@
+import 'package:contacts_hive/addcontact.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive/hive.dart';
 
-part 'main.g.dart';
-
-const String contactsBoxName = "contacts";
-
-@HiveType(typeId: 1)
-enum Relationship {
-  @HiveField(0)
-  Family,
-  @HiveField(1)
-  Friend,
-}
-const relationships = <Relationship, String>{
-  Relationship.Family: "Family",
-  Relationship.Friend: "Friend",
-};
-
-@HiveType(typeId: 0)
-class Contact {
-  @HiveField(0)
-  String name;
-  @HiveField(1)
-  int age;
-  @HiveField(2)
-  Relationship relationship;
-  @HiveField(3)
-  String phoneNumber;
-
-  Contact(this.name, this.age, this.phoneNumber, this.relationship);
-}
+import 'contact.dart';
+import 'relationships.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -43,7 +17,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Widget _buildDivider() => const SizedBox(height: 5);
+    Widget _buildDivider() => const SizedBox(height: 30);
 
     return MaterialApp(
       title: 'Contacts App',
@@ -68,24 +42,26 @@ class MyApp extends StatelessWidget {
                     showDialog(
                       context: context,
                       barrierDismissible: true,
-                      child: AlertDialog(
-                        content: Text(
-                          "Do you want to delete ${c.name}?",
-                        ),
-                        actions: <Widget>[
-                          FlatButton(
-                            child: Text("No"),
-                            onPressed: () => Navigator.of(context).pop(),
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          content: Text(
+                            "Do you want to delete ${c.name}?",
                           ),
-                          FlatButton(
-                            child: Text("Yes"),
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              await box.deleteAt(index);
-                            },
-                          ),
-                        ],
-                      ),
+                          actions: <Widget>[
+                            FlatButton(
+                              child: Text("No"),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            FlatButton(
+                              child: Text("Yes"),
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                                await box.deleteAt(index);
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
                   child: Card(
@@ -123,101 +99,6 @@ class MyApp extends StatelessWidget {
               },
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class AddContact extends StatefulWidget {
-  final formKey = GlobalKey<FormState>();
-
-  @override
-  _AddContactState createState() => _AddContactState();
-}
-
-class _AddContactState extends State<AddContact> {
-  String name;
-  int age;
-  String phoneNumber;
-  Relationship relationship;
-
-  void onFormSubmit() {
-    if (widget.formKey.currentState.validate()) {
-      Box<Contact> contactsBox = Hive.box<Contact>(contactsBoxName);
-      contactsBox.add(Contact(name, age, phoneNumber, relationship));
-      Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Form(
-          key: widget.formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(8.0),
-            children: <Widget>[
-              TextFormField(
-                autofocus: true,
-                initialValue: "",
-                decoration: const InputDecoration(
-                  labelText: "Name",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    name = value;
-                  });
-                },
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                initialValue: "",
-                maxLength: 3,
-                maxLengthEnforced: true,
-                decoration: const InputDecoration(
-                  labelText: "Age",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    age = int.parse(value);
-                  });
-                },
-              ),
-              TextFormField(
-                keyboardType: TextInputType.phone,
-                initialValue: "",
-                decoration: const InputDecoration(
-                  labelText: "Phone",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    phoneNumber = value;
-                  });
-                },
-              ),
-              DropdownButtonFormField(
-                items: relationships.keys.map((Relationship value) {
-                  return DropdownMenuItem<Relationship>(
-                    value: value,
-                    child: Text(relationships[value]),
-                  );
-                }).toList(),
-                value: relationship,
-                hint: Text("Relationship"),
-                onChanged: (value) {
-                  setState(() {
-                    relationship = value;
-                  });
-                },
-              ),
-              OutlineButton(
-                child: Text("Submit"),
-                onPressed: onFormSubmit,
-              ),
-            ],
-          ),
         ),
       ),
     );
