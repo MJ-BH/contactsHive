@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import 'contact.dart';
-import 'relationships.dart';
+import 'model/contact.dart';
+import 'model/relationships.dart';
 
 
 
